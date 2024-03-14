@@ -3,7 +3,7 @@ module cheek-turner
 go 1.21
 
 require (
-	github.com/adhocore/gronx v1.7.0
+	github.com/adhocore/gronx v1.8.1
 	github.com/hashicorp/consul/api v1.25.1
 	github.com/joe-at-startupmedia/consul-leader-election v0.0.2
 	github.com/rs/zerolog v1.32.0
