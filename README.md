@@ -1,34 +1,14 @@
-<img src="https://storage.googleapis.com/cheek-scheduler/cheek-64.png" alt="cheek" />
 
-# cheek
+# cheek-turner
 
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/datarootsio/cheek?label=version)
-[![dataroots](https://dataroots.io/maintained.svg)](https://dataroots.io/) [![codecov](https://codecov.io/gh/datarootsio/cheek/branch/main/graph/badge.svg?token=011KCCGPE6)](https://codecov.io/gh/datarootsio/cheek)
-![workflow](https://github.com/datarootsio/cheek/actions/workflows/ci.yml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/datarootsio/cheek)](https://goreportcard.com/report/github.com/datarootsio/cheek)
-[![Go Reference](https://pkg.go.dev/badge/github.com/datarootsio/cheek.svg)](https://pkg.go.dev/github.com/datarootsio/cheek)
-[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/avelino/awesome-go)
-![love](https://img.shields.io/badge/made_with-%E2%9D%A4%EF%B8%8F-blue)
+`cheek-turner` was forked from `cheek`: a pico-sized declarative job scheduler designed to excel in a single-node environment and aims to be lightweight, stand-alone and simple. It does not compete for robustness.
 
-`cheek` is a pico-sized declarative job scheduler designed to excel in a single-node environment. `cheek` aims to be lightweight, stand-alone and simple. It does not compete for robustness.
+The following additions have been made:
+1. Consul leader election to excel in a multi-node environment.
+
+Note: `cheek-spreader` is not an upstream/downstream fork and has no-relation to this repository.
 
 ## Getting started
-
-Fetch the latest version for your system below.
-
-[darwin-arm64](https://storage.googleapis.com/cheek-scheduler/darwin/arm64/cheek) |
-[darwin-amd64](https://storage.googleapis.com/cheek-scheduler/darwin/amd64/cheek) |
-[linux-386](https://storage.googleapis.com/cheek-scheduler/linux/386/cheek) |
-[linux-arm64](https://storage.googleapis.com/cheek-scheduler/linux/arm64/cheek) |
-[linux-amd64](https://storage.googleapis.com/cheek-scheduler/linux/amd64/cheek)
-
-You can (for example) fetch it like below, make it executable and run it. Optionally put the `cheek` on your `PATH`.
-
-```sh
-curl https://storage.googleapis.com/cheek-scheduler/darwin/amd64/cheek -o cheek
-chmod +x cheek
-./cheek
-```
 
 Everything about how you want the scheduler to function is defined in a schedule specification written in YAML. Start by creating this specification using the below example. Note, this structure should be more or less self-explanatory, if it is not, create an [issue](https://github.com/datarootsio/cheek/issues).
 
@@ -144,31 +124,9 @@ The `notify_slack_webhook` sends a JSON payload to your Slack webhook url with t
 }
 ```
 
-
-## Docker
-
-Check out the `Dockerfile.example` for an example on how to use `cheek` within the context of a Docker container. Note that this builds upon a published Ubuntu-based image build that you can find in the base [Dockerfile](https://github.com/datarootsio/cheek/blob/main/Dockerfile).
-
-Prebuilt images are available at `ghcr.io/datarootsio/cheek:latest` where `latest` can be replaced by a version tag. Check out the [available images](https://github.com/datarootsio/cheek/pkgs/container/cheek) for an overview on available tags.
-
-## Available versions
-
-If you want to pin your setup to a specific version of `cheek` you can use the following template to fetch your `cheek` binary:
-
-- latest version: https://storage.googleapis.com/cheek-scheduler/{os}/{arch}/cheek
-- tagged version: https://storage.googleapis.com/cheek-scheduler/{os}/{arch}/cheek-{tag}
-- `main` branch builds: https://storage.googleapis.com/cheek-scheduler/{os}/{arch}/cheek-{shortsha}
-
-Where:
-
-- `os` is one of `linux`, `darwin`
-- `arch` is one of `amd64`, `arm64`, `386`
-- `tag` is one the [available tags](https://github.com/datarootsio/cheek/tags)
-- `shortsha` is a 7-char SHA and most commits on `main` will be available
-
 ## Acknowledgements
 
-`cheek` is building on top of many great OSS assets. Noteable thanks goes to:
+`cheek-turner` is building on top of many great OSS assets. Noteable thanks goes to:
 
 - [chota](https://jenil.github.io/chota/): for a pico sized css framework
 - [gronx](https://github.com/adhocore/gronx): for allowing me not to worry about CRON strings.
