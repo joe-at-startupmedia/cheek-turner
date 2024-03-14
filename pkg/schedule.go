@@ -2,13 +2,14 @@ package cheek
 
 import (
 	"fmt"
+	"github.com/hashicorp/consul/api"
+	election "github.com/joe-at-startupmedia/consul-leader-election"
+	"gopkg.in/yaml.v3"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
-
-	"gopkg.in/yaml.v3"
 
 	"github.com/rs/zerolog"
 )
@@ -25,7 +26,7 @@ type Schedule struct {
 }
 
 // Run a Schedule based on its specs.
-func (s *Schedule) Run() {
+func (s *Schedule) Run(e *election.Election) {
 	var currentTickTime time.Time
 	s.log.Info().Msg("Scheduler started")
 	ticker := time.NewTicker(15 * time.Second) // could be longer
@@ -36,6 +37,12 @@ func (s *Schedule) Run() {
 		select {
 		case <-ticker.C:
 			s.log.Debug().Msg("tick")
+
+			if !e.IsLeader() {
+				s.log.Debug().Msg("follower, doing nothing")
+				continue
+			}
+
 			currentTickTime = s.now()
 
 			for _, j := range s.Jobs {
@@ -58,6 +65,7 @@ func (s *Schedule) Run() {
 
 		case sig := <-sigs:
 			s.log.Info().Msgf("%s signal received, exiting...", sig.String())
+			e.Stop()
 			return
 		}
 	}
@@ -172,6 +180,42 @@ func RunSchedule(log zerolog.Logger, cfg Config, scheduleFn string) error {
 		i++
 	}
 	go server(&s)
-	s.Run()
+	e := elector()
+	s.Run(e)
 	return nil
+}
+
+type notify struct {
+	T string
+}
+
+func (n *notify) EventLeader(f bool) {
+	if f {
+		fmt.Println(n.T, "I'm the leader!")
+	} else {
+		fmt.Println(n.T, "I'm no longer the leader!")
+	}
+}
+
+func elector() *election.Election {
+
+	conf := api.DefaultConfig()
+	consul, _ := api.NewClient(conf)
+	n := &notify{
+		T: "cheek-turner",
+	}
+
+	elconf := &election.ElectionConfig{
+		CheckTimeout: 5 * time.Second,
+		Client:       consul,
+		Key:          "service/cheek-turner-election/leader",
+		LogLevel:     election.LogDebug,
+		Event:        n,
+	}
+
+	e := election.NewElection(elconf)
+
+	go e.Init()
+
+	return e
 }

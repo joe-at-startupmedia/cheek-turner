@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	cheek "github.com/datarootsio/cheek/pkg"
+	cheek "cheek-turner/pkg"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

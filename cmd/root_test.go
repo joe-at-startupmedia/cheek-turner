@@ -4,7 +4,8 @@ import (
 	"os"
 	"testing"
 
-	cheek "github.com/datarootsio/cheek/pkg"
+	cheek "cheek-turner/pkg"
+
 	"github.com/spf13/viper"
 )
 
