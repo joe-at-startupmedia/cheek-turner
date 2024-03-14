@@ -3,7 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	cheek "github.com/datarootsio/cheek/pkg"
+	cheek "cheek-turner/pkg"
+
 	"github.com/spf13/cobra"
 )
 

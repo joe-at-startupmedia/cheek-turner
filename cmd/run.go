@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	cheek "github.com/datarootsio/cheek/pkg"
+	cheek "cheek-turner/pkg"
+
 	zl "github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
