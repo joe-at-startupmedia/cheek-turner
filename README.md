@@ -16,6 +16,8 @@ Everything about how you want the scheduler to function is defined in a schedule
 
 ```yaml
 tz_location: Europe/Brussels # optionally set timezone to adhere to
+consul_acl_token: bd320011-d490-c54b-c3f9-bc01736d98d6
+consul_session_key: service/job_leader #defaults to service/cheek-turner-election
 jobs:
   foo:
     command: date
