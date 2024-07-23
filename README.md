@@ -8,6 +8,8 @@ The following additions have been made:
 
 Note: `cheek-spreader` is not an upstream/downstream fork and has no-relation to this repository.
 
+> 📄 This bump to v1 introduces a storage backend switch, moving from jsonline logs to sqlite. This might introduce the need to adjust your long-term log storage approach.
+
 ## Getting started
 
 Everything about how you want the scheduler to function is defined in a schedule specification written in YAML. Start by creating this specification using the below example. Note, this structure should be more or less self-explanatory, if it is not, create an [issue](https://github.com/datarootsio/cheek/issues).
@@ -61,13 +63,11 @@ Check out `cheek run --help` for configuration options.
 
 `cheek` ships with a web UI that by default gets launched on port `8081`. You can define the port on which it is accessible via the `--port` flag.
 
-| ![main-screen](https://i.imgur.com/hq0Zxjb.png) |
-| :---------------------------------------------: |
-|                  main overview                  |
+![main-screen](/readme_assets/main.png)
+ main overview
 
-| ![detail](https://i.imgur.com/jc9wBQJ.png) |
-| :----------------------------------------: |
-|                 job detail                 |
+![main-screen](/readme_assets/joboverview.png)
+job detail
 
 You can access the UI by navigating to `http://localhost:8081`. When `cheek` is deployed you are recommended to NOT make this port publicly accessible, instead navigate to the UI via an SSH tunnel.
 

@@ -26,10 +26,15 @@ var runCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c := cheek.NewConfig()
 		if err := viper.Unmarshal(&c); err != nil {
-			fmt.Println("cannot init configuration")
+			fmt.Println("cannot init configuration, error unmarshalling config: ", err)
 			os.Exit(1)
 		}
-		l := cheek.NewLogger(logLevel, cheek.PrettyStdout())
+		if err := c.Init(); err != nil {
+			fmt.Println("cannot init configuration", err)
+			os.Exit(1)
+		}
+
+		l := cheek.NewLogger(logLevel, c.DB, cheek.PrettyStdout())
 		return cheek.RunSchedule(l, c, args[0])
 	},
 }
