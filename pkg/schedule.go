@@ -16,13 +16,15 @@ import (
 
 // Schedule defines specs of a job schedule.
 type Schedule struct {
-	Jobs       map[string]*JobSpec `yaml:"jobs" json:"jobs"`
-	OnSuccess  OnEvent             `yaml:"on_success,omitempty" json:"on_success,omitempty"`
-	OnError    OnEvent             `yaml:"on_error,omitempty" json:"on_error,omitempty"`
-	TZLocation string              `yaml:"tz_location,omitempty" json:"tz_location,omitempty"`
-	loc        *time.Location
-	log        zerolog.Logger
-	cfg        Config
+	Jobs             map[string]*JobSpec `yaml:"jobs" json:"jobs"`
+	OnSuccess        OnEvent             `yaml:"on_success,omitempty" json:"on_success,omitempty"`
+	OnError          OnEvent             `yaml:"on_error,omitempty" json:"on_error,omitempty"`
+	TZLocation       string              `yaml:"tz_location,omitempty" json:"tz_location,omitempty"`
+	ConsulSessionKey string              `yaml:"consul_session_key" json:"consul_session_key,omitempty"`
+	ConsulAclToken   string              `yaml:"consul_acl_token" json:"consul_acl_token,omitempty"`
+	loc              *time.Location
+	log              zerolog.Logger
+	cfg              Config
 }
 
 // Run a Schedule based on its specs.
@@ -186,7 +188,7 @@ func RunSchedule(log zerolog.Logger, cfg Config, scheduleFn string) error {
 		i++
 	}
 	go server(&s)
-	e := elector()
+	e := elector(&s)
 	s.Run(e)
 	return nil
 }
@@ -203,18 +205,28 @@ func (n *notify) EventLeader(f bool) {
 	}
 }
 
-func elector() *election.Election {
+func elector(s *Schedule) *election.Election {
 
 	conf := api.DefaultConfig()
-	consul, _ := api.NewClient(conf)
+  if len(s.ConsulAclToken) > 0 {
+    conf.Token = s.ConsulAclToken
+  }
+
+  consul, _ := api.NewClient(conf)
 	n := &notify{
 		T: "cheek-turner",
 	}
 
+  sessionKey := "service/cheek-turner-election"
+
+  if len(s.ConsulSessionKey) > 0 {
+    sessionKey = s.ConsulSessionKey
+  }
+
 	elconf := &election.ElectionConfig{
 		CheckTimeout: 5 * time.Second,
 		Client:       consul,
-		Key:          "service/cheek-turner-election/leader",
+		Key:          sessionKey + "/leader",
 		LogLevel:     election.LogDebug,
 		Event:        n,
 	}
