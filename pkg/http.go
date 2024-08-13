@@ -50,6 +50,7 @@ func setupRouter(s *Schedule) *httprouter.Router {
 	router.GET("/api/jobs/:jobId/runs/:jobRunId", getJobRun(s))
 	router.POST("/api/jobs/:jobId/trigger", postTrigger(s))
 	router.GET("/api/core/logs", getCoreLogs(s))
+	router.GET("/api/schedule/status", getScheduleStatus(s))
 
 	fileServer := http.FileServer(http.FS(fsys()))
 	router.GET("/static/*filepath", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -135,6 +136,36 @@ func getJobs(s *Schedule) httprouter.Handle {
 		}
 
 		if err := json.NewEncoder(w).Encode(s.Jobs); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+type ScheduleStatusResponse struct {
+	Status         map[string]int `json:"status,omitempty"`
+	FailedRunCount int            `json:"failed_run_count,omitempty"`
+	HasFailedRuns  bool           `json:"has_failed_runs,omitempty"`
+}
+
+func getScheduleStatus(s *Schedule) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		ssr := ScheduleStatusResponse{
+			Status: make(map[string]int, len(s.Jobs)),
+		}
+		for _, j := range s.Jobs {
+			j.loadRunsFromDb(1, false)
+			lastRunStatus := j.Runs[0].Status
+			ssr.Status[j.Name] = lastRunStatus
+			if lastRunStatus == 1 {
+				ssr.FailedRunCount++
+			}
+		}
+
+		ssr.HasFailedRuns = ssr.FailedRunCount > 0
+
+		if err := json.NewEncoder(w).Encode(ssr); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

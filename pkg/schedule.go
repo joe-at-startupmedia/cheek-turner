@@ -208,20 +208,20 @@ func (n *notify) EventLeader(f bool) {
 func elector(s *Schedule) *election.Election {
 
 	conf := api.DefaultConfig()
-  if len(s.ConsulAclToken) > 0 {
-    conf.Token = s.ConsulAclToken
-  }
+	if len(s.ConsulAclToken) > 0 {
+		conf.Token = s.ConsulAclToken
+	}
 
-  consul, _ := api.NewClient(conf)
+	consul, _ := api.NewClient(conf)
 	n := &notify{
 		T: "cheek-turner",
 	}
 
-  sessionKey := "service/cheek-turner-election"
+	sessionKey := "service/cheek-turner-election"
 
-  if len(s.ConsulSessionKey) > 0 {
-    sessionKey = s.ConsulSessionKey
-  }
+	if len(s.ConsulSessionKey) > 0 {
+		sessionKey = s.ConsulSessionKey
+	}
 
 	elconf := &election.ElectionConfig{
 		CheckTimeout: 5 * time.Second,

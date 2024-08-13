@@ -41,4 +41,4 @@ tools:
 	fi
 build:
 	$(GO) mod tidy
-	$(GO) build
+	$(GO) build -buildvcs=false
