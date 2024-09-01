@@ -1,10 +1,11 @@
 
 # cheek-turner
 
-`cheek-turner` was forked from `cheek`: a pico-sized declarative job scheduler designed to excel in a single-node environment and aims to be lightweight, stand-alone and simple. It does not compete for robustness.
+`cheek-turner` was forked from [cheek](https://github.com/datarootsio/cheek/): a pico-sized declarative job scheduler designed to excel in a single-node environment and aims to be lightweight, stand-alone and simple. It does not compete for robustness.
 
 The following additions have been made:
 1. Consul leader election to excel in a multi-node environment.
+2. localizing all static assets
 
 Note: `cheek-spreader` is not an upstream/downstream fork and has no-relation to this repository.
 
