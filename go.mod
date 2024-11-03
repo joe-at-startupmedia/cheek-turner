@@ -3,7 +3,7 @@ module cheek-turner
 go 1.21
 
 require (
-	github.com/adhocore/gronx v1.8.1
+	github.com/adhocore/gronx v1.19.3
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/glebarez/go-sqlite v1.22.0
 	github.com/hashicorp/consul/api v1.28.2

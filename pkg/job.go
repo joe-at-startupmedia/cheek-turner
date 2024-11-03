@@ -250,6 +250,7 @@ func (j *JobSpec) loadRunsFromDb(nruns int, includeLogs bool) {
 
 func (j *JobSpec) setNextTick(refTime time.Time, includeRefTime bool) error {
 	if j.Cron != "" {
+    refTime, _ = time.Parse(time.RFC3339, refTime.Format(time.RFC3339))
 		t, err := gronx.NextTickAfter(j.Cron, refTime, includeRefTime)
 		j.nextTick = t
 		return err
