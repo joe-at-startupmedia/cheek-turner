@@ -1,44 +1,87 @@
 GO ?= go
 GOFMT ?= gofmt "-s"
-GO_VERSION=$(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
-PACKAGES ?= $(shell $(GO) list ./...)
 GOFILES := $(shell find . -name "*.go")
-ROOTDIR=$(shell cd "$(dirname "$0")"; pwd)
+PACKAGES ?= $(shell $(GO) list ./...)
+TEST_REGEX := $(or $(TEST_REGEX),"Test")
 
 all: build
 
-fmt:
+.PHONY: help
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: clean
+clean: ## remove files created during build pipeline
+	$(call print-target)
+	rm -f coverage.*
+	rm -f '"$(shell go env GOCACHE)/../golangci-lint"'
+	go clean -i -cache -testcache -fuzzcache -x
+
+.PHONY: fmt
+fmt: ## format files
+	$(call print-target)
 	$(GOFMT) -w $(GOFILES)
-fmt-check:
-	@diff=$$($(GOFMT) -d $(GOFILES)); \
-	if [ -n "$$diff" ]; then \
-		echo "Please run 'make fmt' and commit the result:"; \
-		echo "$${diff}"; \
-		exit 1; \
-	fi;
-lint:
-	@hash golint > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
-		$(GO) get -u golang.org/x/lint/golint; \
-	fi
-	for PKG in $(PACKAGES); do golint -set_exit_status $$PKG || exit 1; done;
-misspell-check:
-	@hash misspell > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
-		$(GO) get -u github.com/client9/misspell/cmd/misspell; \
-	fi
+
+.PHONY: lint
+lint: ## lint files
+	$(call print-target)
+	golangci-lint run --fix
+
+.PHONY: misspell
+misspell: ## check for misspellings
+	$(call print-target)
 	misspell -error $(GOFILES)
-misspell:
-	@hash misspell > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
-		$(GO) get -u github.com/client9/misspell/cmd/misspell; \
-	fi
-	misspell -w $(GOFILES)
-tools:
-	@if [ $(GO_VERSION) -gt 15 ]; then \
-		$(GO) install golang.org/x/lint/golint@latest; \
-		$(GO) install github.com/client9/misspell/cmd/misspell@latest; \
-	elif [ $(GO_VERSION) -lt 16 ]; then \
-		$(GO) install golang.org/x/lint/golint; \
-		$(GO) install github.com/client9/misspell/cmd/misspell; \
-	fi
-build:
-	$(GO) mod tidy
-	$(GO) build -buildvcs=false
+
+.PHONY: tools
+tools: ## go install tools
+	$(call print-target)
+	cd tools && go install $(shell cd tools && $(GO) list -e -f '{{ join .Imports " " }}' -tags=tools)
+
+.PHONY: mod
+mod: ## go mod tidy
+	$(call print-target)
+	go mod tidy
+	cd tools && go mod tidy
+
+.PHONY: build
+build: mod fmt tools vuln misspell
+	cd tools && $(GO) mod tidy
+	$(ENV_VARS) $(GO) build -buildvcs=false $(BUILD_FLAGS) -o bin/cheek-turner main.go
+
+.PHONY: test
+test: build ## run the tests
+	$(call print-target)
+	$(GO) test $(BUILD_FLAGS) -v -run $(TEST_REGEX) -p 1 ./...
+
+.PHONY: test_cover
+test_cover: build ## run the tests and generate a coverage report
+	$(call print-target)
+	$(GO) test $(BUILD_FLAGS) -v -run $(TEST_REGEX) -p 1 -coverprofile=coverage.out ./...
+
+.PHONY: codecov
+codecov: ## process the coverage report and upload it
+	$(call print-target)
+	codecov upload-process -t $(CODECOV_TOKEN)
+
+.PHONY: test_codecov
+test_codecov: test_cover codecov ## run the tests and process/upload the coverage reports
+	$(call print-target)
+
+.PHONY: vuln
+vuln: ## govulncheck
+	$(call print-target)
+	govulncheck ./...
+
+.PHONY: install
+install: ## install the binary in the systems executable path
+	$(call print-target)
+	cp -R bin/* /usr/local/bin/
+
+.PHONY: mockery
+mockery: ## generates the mocks
+	$(call print-target)
+	mockery --output mocks --name ElectionInterface --dir pkg --filename election.go --structname Election
+
+define print-target
+    @printf "Executing target: \033[36m$@\033[0m\n"
+endef
