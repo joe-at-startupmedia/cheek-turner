@@ -35,7 +35,11 @@ var runCmd = &cobra.Command{
 		}
 
 		l := cheek.NewLogger(logLevel, c.DB, cheek.PrettyStdout())
-		return cheek.RunSchedule(l, c, args[0])
+		schedule, err := cheek.NewSchedule(l, c, args[0])
+		if err != nil {
+			return err
+		}
+		return schedule.Run()
 	},
 }
 

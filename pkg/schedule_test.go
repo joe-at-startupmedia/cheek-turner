@@ -1,6 +1,7 @@
 package cheek
 
 import (
+	"cheek-turner/mocks"
 	"os"
 	"testing"
 	"time"
@@ -24,7 +25,24 @@ func TestScheduleRun(t *testing.T) {
 	logger := NewLogger("debug", nil, b, os.Stdout)
 
 	go func() {
-		err := RunSchedule(logger, Config{DBPath: "tmpdb.sqlite3"}, "../testdata/jobs1.yaml")
+		s, err := readSpecs("../testdata/jobs1.yaml")
+		if err != nil {
+			panic(err)
+		}
+		s.log = logger
+		s.cfg = Config{DBPath: "tmpdb.sqlite3"}
+		if err := s.initialize(); err != nil {
+			panic(err)
+		}
+		mockElection := new(mocks.Election)
+		mockElection.On("IsLeader").Return(true)
+		mockElection.On("Stop").Return(nil)
+		s.Election = mockElection
+		s.log.Info().Msg("Scheduled loaded and validated")
+		if err != nil {
+			panic(err)
+		}
+		err = s.Run()
 		if err != nil {
 			panic(err)
 		}

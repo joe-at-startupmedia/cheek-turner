@@ -351,7 +351,7 @@ func (j JobSpec) ToYAML(includeRuns bool) (string, error) {
 
 // RunJob allows to run a specific job
 func RunJob(log zerolog.Logger, cfg Config, scheduleFn string, jobName string) (JobRun, error) {
-	s, err := loadSchedule(log, cfg, scheduleFn)
+	s, err := NewSchedule(log, cfg, scheduleFn)
 	if err != nil {
 		fmt.Printf("error loading schedule: %s\n", err)
 		os.Exit(1)

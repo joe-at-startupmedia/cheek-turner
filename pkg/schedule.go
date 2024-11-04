@@ -2,8 +2,6 @@ package cheek
 
 import (
 	"fmt"
-	"github.com/hashicorp/consul/api"
-	election "github.com/joe-at-startupmedia/consul-leader-election"
 	"gopkg.in/yaml.v3"
 	"os"
 	"os/signal"
@@ -22,13 +20,39 @@ type Schedule struct {
 	TZLocation       string              `yaml:"tz_location,omitempty" json:"tz_location,omitempty"`
 	ConsulSessionKey string              `yaml:"consul_session_key" json:"consul_session_key,omitempty"`
 	ConsulAclToken   string              `yaml:"consul_acl_token" json:"consul_acl_token,omitempty"`
+	Election         ElectionInterface
 	loc              *time.Location
 	log              zerolog.Logger
 	cfg              Config
 }
 
-// Run a Schedule based on its specs.
-func (s *Schedule) Run(e *election.Election) {
+type stringArray []string
+
+func NewSchedule(log zerolog.Logger, cfg Config, fn string) (*Schedule, error) {
+	s, err := readSpecs(fn)
+	if err != nil {
+		return nil, err
+	}
+	s.log = log
+	s.cfg = cfg
+	if err := s.initialize(); err != nil {
+		return nil, err
+	}
+	s.log.Info().Msg("Scheduled loaded and validated")
+	s.Election = elector(s)
+	return s, nil
+}
+
+// Run is the main entry entrypoint of cheek.
+func (s *Schedule) Run() error {
+	numberJobs := len(s.Jobs)
+	i := 1
+	for k := range s.Jobs {
+		s.log.Info().Msgf("Initializing (%v/%v) job: %s", i, numberJobs, k)
+		i++
+	}
+	go server(s)
+
 	var currentTickTime time.Time
 	s.log.Info().Msg("Scheduler started")
 	ticker := time.NewTicker(15 * time.Second) // could be longer
@@ -45,7 +69,7 @@ func (s *Schedule) Run(e *election.Election) {
 		case <-ticker.C:
 			s.log.Debug().Msg("tick")
 
-			if !e.IsLeader() {
+			if !s.Election.IsLeader() {
 				s.log.Debug().Msg("follower, doing nothing")
 				continue
 			}
@@ -61,7 +85,8 @@ func (s *Schedule) Run(e *election.Election) {
 					s.log.Debug().Msgf("%v is due", j.Name)
 					// first set nextTick
 					if err := j.setNextTick(currentTickTime, false); err != nil {
-						s.log.Fatal().Err(err).Msg("error determining next tick")
+						s.log.Error().Err(err).Msg("error determining next tick")
+						return err
 					}
 
 					go func(j *JobSpec) {
@@ -72,13 +97,11 @@ func (s *Schedule) Run(e *election.Election) {
 
 		case sig := <-sigs:
 			s.log.Info().Msgf("%s signal received, exiting...", sig.String())
-			e.Stop()
-			return
+			s.Election.Stop()
+			return nil
 		}
 	}
 }
-
-type stringArray []string
 
 func (a *stringArray) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var multi []string
@@ -96,16 +119,16 @@ func (a *stringArray) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-func readSpecs(fn string) (Schedule, error) {
+func readSpecs(fn string) (*Schedule, error) {
 	yfile, err := os.ReadFile(fn)
 	if err != nil {
-		return Schedule{}, err
+		return nil, err
 	}
 
-	specs := Schedule{}
+	specs := &Schedule{}
 
-	if err = yaml.Unmarshal(yfile, &specs); err != nil {
-		return Schedule{}, err
+	if err = yaml.Unmarshal(yfile, specs); err != nil {
+		return nil, err
 	}
 
 	return specs, nil
@@ -133,7 +156,7 @@ func (s *Schedule) initialize() error {
 			}
 		}
 		// set some metadata & refs for each job
-		// for easier retrievability
+		// for easier retrieval
 		v.Name = k
 		v.globalSchedule = s
 		v.log = s.log
@@ -156,84 +179,4 @@ func (s *Schedule) initialize() error {
 
 func (s *Schedule) now() time.Time {
 	return time.Now().In(s.loc)
-}
-
-func loadSchedule(log zerolog.Logger, cfg Config, fn string) (Schedule, error) {
-	s, err := readSpecs(fn)
-	if err != nil {
-		return Schedule{}, err
-	}
-	s.log = log
-	s.cfg = cfg
-
-	// run validations
-	if err := s.initialize(); err != nil {
-		return Schedule{}, err
-	}
-	s.log.Info().Msg("Scheduled loaded and validated")
-	return s, nil
-}
-
-// RunSchedule is the main entry entrypoint of cheek.
-func RunSchedule(log zerolog.Logger, cfg Config, scheduleFn string) error {
-
-	s, err := loadSchedule(log, cfg, scheduleFn)
-	if err != nil {
-		return err
-	}
-	numberJobs := len(s.Jobs)
-	i := 1
-	for k := range s.Jobs {
-		s.log.Info().Msgf("Initializing (%v/%v) job: %s", i, numberJobs, k)
-		i++
-	}
-	go server(&s)
-	e := elector(&s)
-	s.Run(e)
-	return nil
-}
-
-type notify struct {
-	T string
-}
-
-func (n *notify) EventLeader(f bool) {
-	if f {
-		fmt.Println(n.T, "I'm the leader!")
-	} else {
-		fmt.Println(n.T, "I'm no longer the leader!")
-	}
-}
-
-func elector(s *Schedule) *election.Election {
-
-	conf := api.DefaultConfig()
-	if len(s.ConsulAclToken) > 0 {
-		conf.Token = s.ConsulAclToken
-	}
-
-	consul, _ := api.NewClient(conf)
-	n := &notify{
-		T: "cheek-turner",
-	}
-
-	sessionKey := "service/cheek-turner-election"
-
-	if len(s.ConsulSessionKey) > 0 {
-		sessionKey = s.ConsulSessionKey
-	}
-
-	elconf := &election.ElectionConfig{
-		CheckTimeout: 5 * time.Second,
-		Client:       consul,
-		Key:          sessionKey + "/leader",
-		LogLevel:     election.LogDebug,
-		Event:        n,
-	}
-
-	e := election.NewElection(elconf)
-
-	go e.Init()
-
-	return e
 }
