@@ -1,5 +1,6 @@
-
 # cheek-turner
+[![CI](https://github.com/joe-at-startupmedia/cheek-turner/actions/workflows/ci.yml/badge.svg)](https://github.com/joe-at-startupmedia/cheek-turner/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/joe-at-startupmedia/cheek-turner/graph/badge.svg?token=PTEYA6GVU0)](https://codecov.io/gh/joe-at-startupmedia/cheek-turner)
 
 `cheek-turner` was forked from [cheek](https://github.com/datarootsio/cheek/): a pico-sized declarative job scheduler designed to excel in a single-node environment and aims to be lightweight, stand-alone and simple. It does not compete for robustness.
 
