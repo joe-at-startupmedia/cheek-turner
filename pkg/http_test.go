@@ -163,7 +163,7 @@ func TestMux(t *testing.T) {
 				}
 			},
 			wantCode: http.StatusOK,
-			wantBody: "href=\"/\">cheek</a>",
+			wantBody: "href=\"/\">cheek-turner</a>",
 		},
 		{
 			schedule: &s1,
