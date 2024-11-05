@@ -7,7 +7,7 @@ import (
 )
 
 func TestTriggerCmd(t *testing.T) {
-	rootCmd.SetArgs([]string{"trigger", "../testdata/jobs1.yaml", "bar"})
+	rootCmd.SetArgs([]string{"trigger", "../../testdata/jobs1.yaml", "bar"})
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
 }

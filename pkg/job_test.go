@@ -14,7 +14,7 @@ import (
 )
 
 func TestLoadLogs(t *testing.T) {
-	db, err := OpenDB("./tmp.sqlite3")
+	db, err := OpenDB("./../testdata/tmp.sqlite3")
 	if err != nil {
 		t.Fatal(err)
 	}
