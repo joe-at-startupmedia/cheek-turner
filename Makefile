@@ -46,7 +46,7 @@ mod: ## go mod tidy
 	cd tools && go mod tidy
 
 .PHONY: build
-build: mod fmt tools vuln misspell npm_build
+build: mod fmt tools vuln misspell
 	cd tools && $(GO) mod tidy
 	$(ENV_VARS) $(GO) build -buildvcs=false $(BUILD_FLAGS) -o bin/cheek-turner cmd/cheek-turner/main.go
 
