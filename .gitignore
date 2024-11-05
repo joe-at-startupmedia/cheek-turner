@@ -19,4 +19,5 @@
 bin
 
 tmp/
-pkg/tmp.sqlite3
+testdata/tmp.sqlite3
+web/pnpm-lock.yaml

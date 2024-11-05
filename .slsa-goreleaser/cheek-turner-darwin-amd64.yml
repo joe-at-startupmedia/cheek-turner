@@ -1,0 +1,13 @@
+version: 1
+
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+
+main: cmd/cheek-turner/main.go
+
+goos: darwin
+
+goarch: amd64
+
+binary: cheek-turner-darwin-amd64
