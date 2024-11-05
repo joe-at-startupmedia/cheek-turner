@@ -1,4 +1,4 @@
-package cmd
+package cobra
 
 import (
 	"fmt"
@@ -19,9 +19,10 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "cheek",
-	Short: "Cheek",
-	Long:  `cheek: the pico sized declarative job scheduler`,
+	Use:     "cheek",
+	Short:   "Cheek",
+	Long:    `cheek: the pico sized declarative job scheduler`,
+	Version: cheek.Version,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

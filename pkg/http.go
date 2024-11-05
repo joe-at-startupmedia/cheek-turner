@@ -1,7 +1,7 @@
 package cheek
 
 import (
-	"embed"
+	"cheek-turner/web/assets"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -23,16 +23,8 @@ type Response struct {
 	Type   string `json:"type,omitempty"`
 }
 
-//go:embed web_assets
-var files embed.FS
-
 func fsys() fs.FS {
-	fsys, err := fs.Sub(files, "web_assets")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return fsys
+	return &assets.Assets
 }
 
 func setupRouter(s *Schedule) *httprouter.Router {

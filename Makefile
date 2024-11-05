@@ -3,6 +3,8 @@ GOFMT ?= gofmt "-s"
 GOFILES := $(shell find . -name "*.go")
 PACKAGES ?= $(shell $(GO) list ./...)
 TEST_REGEX := $(or $(TEST_REGEX),"Test")
+DEFAULT_TEST_PACKAGES := $(shell  $(GO) list ./... | awk '!/(cmd|mocks)/' | tr "\n" ",")
+TEST_PACKAGES := $(or $(TEST_PACKAGES),$(DEFAULT_TEST_PACKAGES))
 
 all: build
 
@@ -44,9 +46,9 @@ mod: ## go mod tidy
 	cd tools && go mod tidy
 
 .PHONY: build
-build: mod fmt tools vuln misspell
+build: mod fmt tools vuln misspell npm_build
 	cd tools && $(GO) mod tidy
-	$(ENV_VARS) $(GO) build -buildvcs=false $(BUILD_FLAGS) -o bin/cheek-turner main.go
+	$(ENV_VARS) $(GO) build -buildvcs=false $(BUILD_FLAGS) -o bin/cheek-turner cmd/cheek-turner/main.go
 
 .PHONY: test
 test: build ## run the tests
@@ -56,7 +58,7 @@ test: build ## run the tests
 .PHONY: test_cover
 test_cover: build ## run the tests and generate a coverage report
 	$(call print-target)
-	$(GO) test $(BUILD_FLAGS) -v -run $(TEST_REGEX) -p 1 -coverprofile=coverage.out ./...
+	$(GO) test $(BUILD_FLAGS) -v -run $(TEST_REGEX) -p 1 -coverprofile=coverage.out -coverpkg=$(TEST_PACKAGES) ./...
 
 .PHONY: codecov
 codecov: ## process the coverage report and upload it
@@ -81,6 +83,11 @@ install: ## install the binary in the systems executable path
 mockery: ## generates the mocks
 	$(call print-target)
 	mockery --output mocks --name ElectionInterface --dir pkg --filename election.go --structname Election
+
+.PHONY: npm_build
+npm_build: ## npm build client
+	$(call print-target)
+	cd web && npm run build
 
 define print-target
     @printf "Executing target: \033[36m$@\033[0m\n"

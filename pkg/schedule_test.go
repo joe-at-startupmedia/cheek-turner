@@ -30,7 +30,7 @@ func TestScheduleRun(t *testing.T) {
 			panic(err)
 		}
 		s.log = logger
-		s.cfg = Config{DBPath: "tmpdb.sqlite3"}
+		s.cfg = Config{DBPath: "../testdata/tmpdb.sqlite3"}
 		if err := s.initialize(); err != nil {
 			panic(err)
 		}

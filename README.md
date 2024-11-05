@@ -7,8 +7,7 @@
 The following additions have been made:
 1. Consul leader election to excel in a multi-node environment.
 2. localizing all static assets
-
-Note: `cheek-spreader` is not an upstream/downstream fork and has no-relation to this repository.
+3. project restructuring
 
 > 📄 This bump to v1 introduces a storage backend switch, moving from jsonline logs to sqlite. This might introduce the need to adjust your long-term log storage approach.
 
@@ -67,10 +66,10 @@ Check out `cheek run --help` for configuration options.
 
 `cheek` ships with a web UI that by default gets launched on port `8081`. You can define the port on which it is accessible via the `--port` flag.
 
-![main-screen](/readme_assets/main.png)
+![main-screen](/assets/main.png)
  main overview
 
-![main-screen](/readme_assets/joboverview.png)
+![main-screen](/assets/joboverview.png)
 job detail
 
 You can access the UI by navigating to `http://localhost:8081`. When `cheek` is deployed you are recommended to NOT make this port publicly accessible, instead navigate to the UI via an SSH tunnel.

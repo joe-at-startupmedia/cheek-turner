@@ -1,0 +1,17 @@
+{
+  "name": "cheek-truner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tailwindcss build -o assets/static/tailwind.css",
+    "watch": "npx tailwindcss build -o assets/static/tailwind.css --watch",
+    "dev": "nodemon --watch web/assets --ext html,css,js --exec 'go generate && go run .. run ./testdata/jobs1.yaml' --signal SIGTERM"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.3.5"
+  }
+}
